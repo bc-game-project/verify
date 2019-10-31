@@ -11,6 +11,7 @@
   <!-- <script src="./lib/jquery.js"></script> -->
   <!-- <script src="./lib/bootstrap/js/bootstrap.min.js"></script> -->
   <script src="./lib/crypto-js.js"></script>
+  <script src="./lib/tools.js"></script>
 </head>
 <body>
 <div id="app" class="main">
@@ -28,7 +29,7 @@
       <input :value="server_seed_hash" @change="server_seed_hash = $event.target.value" class="form-control" placeholder="Server Seed Hash">
     </div>
     <div class="form-group">
-      <input :value="nonce" @change="nonce = $event.target.value" class="form-control" placeholder="Server Seed Hash">
+      <input :value="nonce" @change="nonce = $event.target.value" class="form-control" placeholder="Nonce">
     </div>
   </form>
   <hr>
@@ -95,14 +96,15 @@
   </form>
 </div>
 <script>
+  let qs = queryString();
   var app = new Vue({
     el: '#app',
     data: {
       /** inputs */
-      client_seed: 'WZrTeXiGtikSMYLOe5GdyMURLkb17Lo0',
-      server_seed: '2b663ce3401d371717ed3785a3fe04f65f3a107206c2731b180fb5294cb5ef12',
-      server_seed_hash: 'ac9a003530e43ffa29bd0db218a29f8729544d48fa98a7130f0398e60308ac79',
-      nonce: 436,
+      client_seed: qs.c,
+      server_seed: qs.s,
+      server_seed_hash: qs.h,
+      nonce: parseInt(qs.n) || 0,
     },
     computed: {
       result_hash () {
