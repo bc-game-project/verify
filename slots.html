@@ -26,8 +26,16 @@
       <div class="form-group">
         <input v-model.lazy="server_seed_hash" class="form-control" placeholder="Server Seed Hash">
       </div>
-      <div class="form-group">
-        <input v-model.lazy.number="layer" class="form-control" placeholder="Layer">
+      <div class="row">
+        <div class="form-group col">
+          <input v-model.lazy.number="layers[0]" class="form-control" placeholder="Left">
+        </div>
+        <div class="form-group col">
+          <input v-model.lazy.number="layers[1]" class="form-control" placeholder="Middle">
+        </div>
+        <div class="form-group col">
+          <input v-model.lazy.number="layers[2]" class="form-control" placeholder="Right">
+        </div>
       </div>
       <div class="form-group">
         <input v-model.lazy.number="nonce" class="form-control" placeholder="Nonce">
@@ -96,6 +104,29 @@
           return lucky;
         }
       </pre>
+      <h5>Layer Data</h5>
+      <div class="form-group">
+        <table class="table table-sm table-bordered">
+          <tbody>
+            <tr>
+              <th>Layer</th>
+              <th>Left</th>
+              <th>Middle</th>
+              <th>Right</th>
+              <th>Ghost</th>
+              <th>Blank</th>
+            </tr>
+            <tr v-for="item in layerData" :key="item[0]">
+              <td>{{ formatLayerString(item[0]) }}</td>
+              <td>{{ item[1] }}</td>
+              <td>{{ item[2] }}</td>
+              <td>{{ item[3] }}</td>
+              <td>{{ item[4] }}</td>
+              <td>{{ item[5] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </form>
   </div>
 </body>
@@ -296,17 +327,26 @@
 [374,403727,31873,183512,95221,285667],
 [375,427676,33763,152741,96454,289366]
 ]
+  function formatLayerString (str) {
+    str = String(str);
+    return '000'.substring(0, 3-str.length)+str
+  }
+  var layerString = formatLayerString(qs.l || '');
   var app = new Vue({
     el: '#app',
     data: {
       client_seed: qs.c,
       server_seed: qs.s,
       server_seed_hash: qs.h,
-      layer: parseInt(qs.l) || 0,
+      layers: [parseInt(layerString[0]), parseInt(layerString[1]), parseInt(layerString[2])],
       nonce: parseInt(qs.n) || 0,
       luckyIndex: -1,
+      layerData: data
     },
     computed: {
+      layer () {
+        return this.layers[0]*100+this.layers[1]*10+this.layers[2];
+      },
       result_hash () {
         return String(this.sha512(this.server_seed + this.client_seed + this.nonce));
       },
@@ -353,6 +393,7 @@
       parseInt (value) {
         return window.parseInt(value, 16);
       },
+      formatLayerString: formatLayerString
     }
   });
 
