@@ -88,7 +88,7 @@
       <h5 v-if="isTop">Roulette Result</h5>
       <div v-if="isTop" class="form-group">
         <div class="form-group">
-          <label>sha512(server_seed+client_seed+nonce)%5</label>
+          <label>substr(sha512(server_seed+client_seed+nonce), 10)%5</label>
           <input class="form-control" readonly :value="top_lucky">
         </div>
       </div>
@@ -105,7 +105,7 @@
         }
       </pre>
       <h5>Layer Data</h5>
-      <div class="form-group">
+      <div id="probability" class="form-group">
         <table class="table table-sm table-bordered">
           <tbody>
             <tr>
@@ -381,6 +381,13 @@
       },
       isTop () {
         return Math.floor((this.layer%100)/10) == 7 && this.luckyIndex == 1;
+      }
+    },
+    mounted () {
+      if (location.hash == '#probability') {
+        setTimeout(() => {
+          (document.scrollingElement || document.documentElement).scrollTop = document.getElementById('probability').offsetTop - 100;
+        }, 200);
       }
     },
     methods: {
