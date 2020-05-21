@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Wheel verify</title>
+  <title>ClassicDice verify</title>
   <link rel="stylesheet" href="./lib/main.css">
   <link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
   <script src="./lib/vue.min.js"></script>
@@ -14,7 +14,7 @@
 <body>
   
 <div id="app" class="main">
-  <h1 class="text-center pb-5">Wheel verify</h1> 
+  <h1 class="text-center pb-5">ClassicDice verify</h1> 
   <hr>
   <form class="py-5">
     <h2 class="text-center">Input</h2>
@@ -30,22 +30,6 @@
     <div class="form-group">
       <input :value="nonce" @change="nonce = $event.target.value" class="form-control" placeholder="Nonce">
     </div>
-    <div class="form-group">
-      <select class='form-control' v-model="risk">
-        <option>Low</option>
-        <option>Medium</option>
-        <option>High</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <select class="form-control" v-model="segments">
-        <option>10</option>
-        <option>20</option>
-        <option>30</option>
-        <option>40</option>
-        <option>50</option>
-      </select>
-    </div>
   </form>
   <hr>
   <form class="py-5">
@@ -55,7 +39,7 @@
       <input class="form-control" readonly :value="sha256(server_seed)">
     </div>
     <div class="form-group">
-      <label>sha256(server_seed+client_seed+nonce)</label>
+      <label>sha256(server_seed:client_seed:nonce)</label>
       <input class="form-control" readonly :value="result_hash">
     </div>
   </form>
@@ -63,19 +47,7 @@
   <form class="py-5">
     <h2 class="text-center pb-5">Results</h2>
     <h5>Final Result</h5>
-    <div class="form-group" style="overflow-x: auto;">
-      <table class="table table-sm table-bordered">
-        <tbody>
-          <tr>
-            <td v-for="(item, index) in final_result" :key="index" :class="{'bg-success': Math.floor(numResult * segments) === index}">{{ index }}</td>
-          </tr>
-          <tr>
-            <td v-for="(item, index) in final_result" :key="index" :class="{'bg-success': Math.floor(numResult * segments) === index}">{{ item }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <h5>SHA256(client_seed + server_seed + segments)</h5>
+    <h5>SHA256(client_seed:server_seed:nonce)</h5>
     <div class="form-group" style="overflow-x: auto;">
       <table class="table table-sm table-bordered">
         <tbody>
@@ -90,13 +62,13 @@
     </div>
     <h5>Bytes to Number</h5>
     <div class="form-group">
-      ({{results.hex[0] + ', ' + results.hex[1] + ', ' + results.hex[2] + ', ' + results.hex[3]}}) -> [0, ... {{final_result.length - 1}}] = <span class="text-success">{{Math.floor(numResult * segments)}}</span>
+      ({{results.hex[0] + ', ' + results.hex[1] + ', ' + results.hex[2] + ', ' + results.hex[3]}}) -> [0, ... 4] = <span class="text-success">{{Math.floor(numResult * 100.01 * 100) / 100}}</span>
       <div><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span> {{Number(results.hex[0] / 256).toFixed(9)}}&nbsp;&nbsp;&nbsp;&nbsp;</span><span>({{results.hex[0]}} / (256 ^ 1))</span></div>
       <div><span>+&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{Number(results.hex[1] / (256 * 256)).toFixed(9)}}&nbsp;&nbsp;&nbsp;&nbsp;</span><span>({{results.hex[1]}} / (256 ^ 2))</span></div>
       <div><span>+&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{Number(results.hex[2] / (256 * 256 * 256)).toFixed(9)}}&nbsp;&nbsp;&nbsp;&nbsp;</span><span>({{results.hex[2]}} / (256 ^ 3))</span></div>
       <div><span>+&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{Number(results.hex[3] / (256 * 256 * 256 * 256)).toFixed(9)}}&nbsp;&nbsp;&nbsp;&nbsp;</span><span>({{results.hex[3]}} / (256 ^ 4))</span></div>
-      <div><span>=&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{numResult}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>(* {{segments}})</div>
-      <div><span>=&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-success">{{Number(numResult * segments).toFixed(9)}}</span></div>
+      <div><span>=&nbsp;&nbsp;&nbsp;&nbsp;</span><span>{{numResult}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>(* 10001 / 100)</div>
+      <div><span>=&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-success">{{Number(numResult * 100.01).toFixed(9)}}</span></div>
     </div>
   </form>
 </div>
@@ -111,36 +83,13 @@ var app = new Vue({
     server_seed: qs.s,
     server_seed_hash: qs.h,
     nonce: parseInt(qs.n) || 0,
-    risk: qs.r || 'Low',
-    segments: qs.t || 10,
-    payout: [
-      {segment:10, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
-      {segment:20, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
-      {segment:30, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
-      {segment:40, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
-      {segment:50, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
-      {segment:10, risk: 'Medium', payouts: [0,1.9,0,1.5,0,2,0,1.5,0,3]},
-      {segment:20, risk: 'Medium', payouts: [1.5,0,2,0,2,0,2,0,1.5,0,3,0,1.8,0,2,0,2,0,2,0]},
-      {segment:30, risk: 'Medium', payouts: [1.5,0,1.5,0,2,0,1.5,0,2,0,2,0,1.5,0,3,0,1.5,0,2,0,2,0,1.7,0,4,0,1.5,0,2,0]},
-      {segment:40, risk: 'Medium', payouts: [2,0,3,0,2,0,1.5,0,3,0,1.5,0,1.5,0,2,0,1.5,0,3,0,1.5,0,2,0,2,0,1.6,0,2,0,1.5,0,3,0,1.5,0,2,0,1.5,0]},
-      {segment:50, risk: 'Medium', payouts: [2,0,1.5,0,2,0,1.5,0,3,0,1.5,0,1.5,0,2,0,1.5,0,3,0,1.5,0,2,0,1.5,0,2,0,2,0,1.5,0,3,0,1.5,0,2,0,1.5,0,1.5,0,5,0,1.5,0,2,0,1.5,0]},
-      {segment:10, risk: 'High', payouts: [0,0,0,0,0,0,0,0,0,9.9]},
-      {segment:20, risk: 'High', payouts: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,19.8]},
-      {segment:30, risk: 'High', payouts: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,29.7]},
-      {segment:40, risk: 'High', payouts: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,39.6]},
-      {segment:50, risk: 'High', payouts: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,49.5]}]
   },
   computed: {
     result_hash () {
-      return this.sha256(this.server_seed + this.client_seed + this.nonce)
+      return this.sha256(this.server_seed + ':' +this.client_seed + ':' + this.nonce)
     },
     result_hash_list () {
       return String(this.result_hash)
-    },
-    final_result () {
-      return this.payout.find(item => {
-        return (item.segment === Number(this.segments) && item.risk === this.risk)
-      }).payouts
     },
     results () {
       let list = this.result_hash_list
@@ -151,7 +100,7 @@ var app = new Vue({
       for (let i = 0; i < list.length; i += 2) {
         let dext = list[i] + list[i + 1]
         let hext = parseInt(dext, 16)
-        res.dec.push(dext)
+        res.dec.push(dext)  
         res.hex.push(hext)
       }
       return res
