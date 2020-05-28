@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>ClassicDice verify</title>
+  <link rel="stylesheet" href="./lib/main.css">
+  <link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
+  <script src="./lib/vue.min.js"></script>
+  <script src="./lib/crypto-js.js"></script>
+  <script src="./lib/tools.js"></script>
+</head>
+<body>
+  
+<div id="app" class="main">
+  <h1 class="text-center pb-5">Limbo verify</h1> 
+  <hr>
+  <form class="py-5">
+    <h2 class="text-center">Input</h2>
+    <div class="form-group">
+      <input :value="client_seed" @change="client_seed = $event.target.value" class="form-control" placeholder="Client Seed">
+    </div>
+    <div class="form-group">
+      <input :value="server_seed" @change="server_seed = $event.target.value" class="form-control" placeholder="Server Seed">
+    </div>
+    <div class="form-group">
+      <input :value="server_seed_hash" @change="server_seed_hash = $event.target.value" class="form-control" placeholder="Server Seed Hash">
+    </div>
+    <div class="form-group">
+      <input :value="nonce" @change="nonce = $event.target.value" class="form-control" placeholder="Nonce">
+    </div>
+  </form>
+  <hr>
+  <form class="py-5">
+    <h2 class="text-center pb-5">Output</h2>
+    <div class="form-group">
+      <label>sha256(server_seed)</label>
+      <input class="form-control" readonly :value="sha256(server_seed)">
+    </div>
+    <div class="form-group">
+      <label>sha256(server_seed:client_seed:nonce)</label>
+      <input class="form-control" readonly :value="result_hash">
+    </div>
+  </form>
+    <hr>
+  <form class="py-5">
+    <h2 class="text-center pb-5">Results</h2>
+    <h5>Final Result</h5>
+    <h5>SHA256(client_seed:server_seed:nonce)</h5>
+    <input class="form-control" readonly :value="gameResult">
+  </form>
+</div>
+</body>
+<script>
+let qs = queryString();
+var app = new Vue({
+  el: '#app',
+  data: {
+    /** inputs */
+    client_seed: qs.c,
+    server_seed: qs.s,
+    server_seed_hash: qs.h,
+    nonce: parseInt(qs.n) || 0,
+  },
+  computed: {
+    result_hash () {
+      return this.sha256(this.server_seed + ':' +this.client_seed + ':' + this.nonce)
+    },
+    result_hash_list () {
+      return String(this.result_hash)
+    },
+    gameResult () {
+      let seed = this.result_hash_list
+      const nBits = 52; 
+      seed = seed.slice(0, nBits / 4);
+      const r = parseInt(seed, 16);
+      let X = r / Math.pow(2, nBits);
+      X = 99 / (1 - X);
+      const result = Math.floor(X);
+      return this.server_seed ? Math.max(1, result / 100) : '';
+    }
+  },
+  created () {
+    console.log(this.result_hash_list)
+  },
+  methods: {
+    sha256 (value) {
+      return CryptoJS.SHA256(CryptoJS.enc.Utf8.parse(value));
+    },
+    sha512 (value) {
+      return CryptoJS.SHA512(CryptoJS.enc.Utf8.parse(value));
+    },
+    parseInt (value) {
+      return window.parseInt(value, 16);
+    },
+  }
+});
+</script>
+</html>
