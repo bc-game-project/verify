@@ -7,6 +7,7 @@
   <title>Wheel verify</title>
   <link rel="stylesheet" href="./lib/main.css">
   <link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
+  <script src="./lib/GoogleAnalytics.js"></script>
   <script src="./lib/vue.min.js"></script>
   <script src="./lib/crypto-js.js"></script>
   <script src="./lib/tools.js"></script>
@@ -23,9 +24,6 @@
     </div>
     <div class="form-group">
       <input :value="server_seed" @change="server_seed = $event.target.value" class="form-control" placeholder="Server Seed">
-    </div>
-    <div class="form-group">
-      <input :value="server_seed_hash" @change="server_seed_hash = $event.target.value" class="form-control" placeholder="Server Seed Hash">
     </div>
     <div class="form-group">
       <input :value="nonce" @change="nonce = $event.target.value" class="form-control" placeholder="Nonce">
@@ -55,7 +53,7 @@
       <input class="form-control" readonly :value="sha256(server_seed)">
     </div>
     <div class="form-group">
-      <label>sha256(server_seed+client_seed+nonce)</label>
+      <label>hmac_sha256(client_seed:nonce, server_seed)</label>
       <input class="form-control" readonly :value="result_hash">
     </div>
   </form>
@@ -75,7 +73,7 @@
         </tbody>
       </table>
     </div>
-    <h5>SHA256(client_seed + server_seed + segments)</h5>
+    <h5>hmac_sha256(client_seed:nonce, server_seed)</h5>
     <div class="form-group" style="overflow-x: auto;">
       <table class="table table-sm table-bordered">
         <tbody>
@@ -107,12 +105,13 @@ var app = new Vue({
   el: '#app',
   data: {
     /** inputs */
-    client_seed: qs.c,
-    server_seed: qs.s,
-    server_seed_hash: qs.h,
+    client_seed: qs.c || '',
+    server_seed: qs.s || '',
+    server_seed_hash: qs.h || '',
     nonce: parseInt(qs.n) || 0,
     risk: qs.r || 'Low',
     segments: qs.t || 10,
+    version: qs.version || 1,
     payout: [
       {segment:10, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
       {segment:20, risk: 'Low', payouts: [1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0,1.5,1.2,1.2,1.2,0,1.2,1.2,1.2,1.2,0]},
@@ -132,7 +131,7 @@ var app = new Vue({
   },
   computed: {
     result_hash () {
-      return this.sha256(this.server_seed + this.client_seed + this.nonce)
+      return this.hmac_sha256(this.client_seed + ":" + this.nonce, this.server_seed);
     },
     result_hash_list () {
       return String(this.result_hash)
@@ -165,10 +164,18 @@ var app = new Vue({
       return num.toFixed(9)
     }
   },
+  watch: {
+    'this.results'() {
+      ga('send', 'event', 'Wheel', 'verify', this.server_seed, {metric0: this.client_seed, metric1: this.nonce})
+    }
+  },
   created () {
     console.log(this.result_hash_list)
   },
   methods: {
+    hmac_sha256 (msg, salt) {
+      return CryptoJS.HmacSHA256(msg, salt);
+    },
     sha256 (value) {
       return CryptoJS.SHA256(CryptoJS.enc.Utf8.parse(value));
     },

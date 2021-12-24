@@ -7,6 +7,7 @@
   <title>Plinko verify</title>
   <link rel="stylesheet" href="./lib/main.css">
   <link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
+  <script src="./lib/GoogleAnalytics.js"></script>
   <script src="./lib/vue.min.js"></script>
   <script src="./lib/crypto-js.js"></script>
   <script src="./lib/tools.js"></script>
@@ -24,9 +25,6 @@
       <input :value="server_seed" @change="server_seed = $event.target.value" class="form-control" placeholder="Server Seed">
     </div>
     <div class="form-group">
-      <input :value="server_seed_hash" @change="server_seed_hash = $event.target.value" class="form-control" placeholder="Server Seed Hash">
-    </div>
-    <div class="form-group">
       <input :value="nonce" @change="nonce = $event.target.value" class="form-control" placeholder="Nonce">
     </div>
   </form>
@@ -37,10 +35,12 @@
       <label>sha256(server_seed)</label>
       <input class="form-control" readonly :value="sha256(server_seed)">
     </div>
+    <!-- difference -->
     <div class="form-group">
-      <label>sha512(server_seed+client_seed+nonce)</label>
+      <label>hmac_sha512(client_seed:nonce, server_seed)</label>
       <input class="form-control" readonly :value="result_hash">
     </div>
+    <!-- difference -->
     <hr>
     <h5>Convert each set of four bytes into a number</h3>
     <div class="form-group" style="overflow-x: auto;">
@@ -99,14 +99,14 @@
     el: '#app',
     data: {
       /** inputs */
-      client_seed: qs.c,
-      server_seed: qs.s,
-      server_seed_hash: qs.h,
+      client_seed: qs.c || '',
+      server_seed: qs.s || '',
+      server_seed_hash: qs.h || '',
       nonce: parseInt(qs.n) || 0,
     },
     computed: {
       result_hash () {
-        return this.sha512(this.server_seed+this.client_seed+this.nonce);
+        return this.hmac_sha512(this.client_seed + ":" + this.nonce, this.server_seed);
       },
       result_hash_list () {
         return String(this.result_hash).match(/.{2}/g);
@@ -121,6 +121,11 @@
         return res;
       }
     },
+    watch: {
+      'this.results'() {
+        ga('send', 'event', 'Plinko', 'verify', this.server_seed, {metric0: this.client_seed, metric1: this.nonce})
+      }
+    },
     methods: {
       round (index) {
         return this.client_seed + ':' + this.nonce + ':' + index;
@@ -130,6 +135,9 @@
       },
       sha512 (value) {
         return CryptoJS.SHA512(CryptoJS.enc.Utf8.parse(value));
+      },
+      hmac_sha512 (msg, salt) {
+        return CryptoJS.HmacSHA512(msg, salt);
       },
       parseInt (value) {
         return window.parseInt(value, 16);

@@ -7,6 +7,7 @@
   <title>VideoPoker Verify</title>
   <link rel="stylesheet" href="./lib/main.css">
   <link rel="stylesheet" href="./lib/bootstrap/css/bootstrap.min.css">
+  <script src="./lib/GoogleAnalytics.js"></script>
   <script src="./lib/vue.min.js"></script>
   <script src="./lib/crypto-js.js"></script>
   <script src="./lib/tools.js"></script>
@@ -38,7 +39,7 @@
         <input class="form-control" readonly :value="sha256(server_seed)">
       </div>
       <div class="form-group">
-        <label>sha512(server_seed+client_seed+nonce)</label>
+        <label>hmac_sha256(client_seed:nonce, server_seed)</label>
         <input class="form-control" readonly :value="result_hash">
       </div>
       <hr>
@@ -64,17 +65,18 @@
     el: '#app',
     data: {
       /** inputs */
-      client_seed: qs.c,
-      server_seed: qs.s,
-      server_seed_hash: qs.h,
+      client_seed: qs.c || '',
+      server_seed: qs.s || '',
+      server_seed_hash: qs.h || '',
       nonce: parseInt(qs.n) || 0,
       allCards: [],
       flower_list: ["♠", "♥", "♣", "♦"],
-      cards: []
+      cards: [],
+      version: qs.version || 1
     },
     computed: {
       result_hash () {
-        return this.sha512(this.server_seed+this.client_seed+this.nonce);
+        return this.sha512(this.hmac_sha256(this.client_seed + ":" +this.nonce, this.server_seed));
       },
       result_hash_list () {
         return String(this.result_hash).match(/.{2}/g);
@@ -93,6 +95,11 @@
         return this.init(beginHash).splice(0, 10);
       }
     },
+    watch: {
+      'this.results'() {
+        ga('send', 'event', 'VideoPoker', 'verify', this.server_seed, {metric0: this.client_seed, metric1: this.nonce})
+      }
+    },
     created () {
       this.cards = " ,A,2,3,4,5,6,7,8,9,10,J,Q,K".split(",");
       this.allCards = [161, 180, 199, 218, 162, 205, 181, 200, 219, 163, 182, 220, 201, 177, 196, 215, 170, 178, 221, 197, 216, 171, 179, 198, 172, 217, 193, 212, 167, 186, 194, 173, 213, 168, 187, 195, 214, 188, 169, 209, 164, 183, 202, 210, 189, 165, 184, 203, 211, 166, 204, 185]
@@ -100,6 +107,9 @@
     methods: {
       sha256 (value) {
         return CryptoJS.SHA256(CryptoJS.enc.Utf8.parse(value));
+      },
+      hmac_sha256 (msg, salt) {
+        return CryptoJS.HmacSHA256(msg, salt);
       },
       sha512 (value) {
         return CryptoJS.SHA512(CryptoJS.enc.Utf8.parse(value));

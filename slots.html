@@ -49,7 +49,7 @@
         <input class="form-control" readonly :value="sha256(server_seed)">
       </div>
       <div class="form-group">
-        <label>sha512(server_seed+client_seed+nonce)</label>
+        <label>hmac_sha512(client_seed:nonce, server_seed)</label>
         <input class="form-control" readonly :value="result_hash">
       </div>
       <div class="form-group">
@@ -88,14 +88,14 @@
       <h5 v-if="isTop">Roulette Result</h5>
       <div v-if="isTop" class="form-group">
         <div class="form-group">
-          <label>substr(sha512(server_seed+client_seed+nonce), 10)%5</label>
+          <label>substr(hmac_sha512(client_seed:nonce, server_seed), 10)%5</label>
           <input class="form-control" readonly :value="top_lucky">
         </div>
       </div>
       <h5>Lucky Algorithm</h5>
       <pre class="alert alert-info">
         function getLucky(serverSeed, clientSeed, nonce) {
-          var hash = sha512(serverSeed + clientSeed + nonce);
+          var hash = hmac_sha512(client_seed + ":" +nonce, server_seed);
           var index = 0;
           do {
             var lucky = parseInt(hash.substr(index, 5), 16);
@@ -132,7 +132,7 @@
 </body>
 </html>
 <script>
-  var qs = tools.queryString();
+  let qs = tools.queryString();
   var data = [
 [0,206250,82500,132000,144812,434438],
 [1,275747,110298,80217,133434,400304],
@@ -335,20 +335,20 @@
   var app = new Vue({
     el: '#app',
     data: {
-      client_seed: qs.c,
-      server_seed: qs.s,
-      server_seed_hash: qs.h,
+      client_seed: qs.c || '',
+      server_seed: qs.s || '',
+      server_seed_hash: qs.h || '',
       layers: [parseInt(layerString[0]), parseInt(layerString[1]), parseInt(layerString[2])],
       nonce: parseInt(qs.n) || 0,
       luckyIndex: -1,
-      layerData: data
+      layerData: data,
     },
     computed: {
       layer () {
         return this.layers[0]*100+this.layers[1]*10+this.layers[2];
       },
       result_hash () {
-        return String(this.sha512(this.server_seed + this.client_seed + this.nonce));
+        return String(this.hmac_sha512(this.client_seed + ":" +this.nonce, this.server_seed));
       },
       layerInfo () {
         var arr = data.find(item => item[0] == this.layer).slice(1);
@@ -383,6 +383,11 @@
         return Math.floor((this.layer%100)/10) == 7 && this.luckyIndex == 1;
       }
     },
+    watch: {
+      'this.lucky'() {
+        ga('send', 'event', 'Slot', 'verify', this.server_seed, {metric0: this.client_seed, metric1: this.nonce})
+      }
+    },
     mounted () {
       if (location.hash == '#probability') {
         setTimeout(() => {
@@ -391,6 +396,9 @@
       }
     },
     methods: {
+      hmac_sha512 (msg, salt) {
+        return CryptoJS.HmacSHA512(msg, salt);
+      },
       sha256 (value) {
         return CryptoJS.SHA256(CryptoJS.enc.Utf8.parse(value));
       },
