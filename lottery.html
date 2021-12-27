@@ -76,6 +76,7 @@
         const jackpot = balls[5];
         return {
           serverSeedHash,
+          hash,
           numbers,
           jackpot,
         }
@@ -92,7 +93,7 @@
           </form>
           <h2 class="text-center">Output</h2>
           <form className="py-5">
-            <Input placeholder="Server Seed (hash)" readOnly value={result.serverSeedHash} />
+            <Input placeholder="HmacSHA256(clientSeed, serverSeed)" readOnly value={result.hash} />
             <Input placeholder="Numbers" readOnly value={result.numbers.join(', ')} />
             <Input placeholder="Jackpot" readOnly value={result.jackpot} />
           </form>
