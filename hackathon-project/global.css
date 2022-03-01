@@ -1,0 +1,80 @@
+:root{
+	--result-container: #304552;
+	--body-background: #192c38;
+	--text: #fff;
+	--input-background: #181a1b;
+	--result-background: #181a1b;
+	--disabled-input: rgb(116, 116, 116);
+}
+
+html, body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	color: var(--text);
+	background-color: var(--body-background);
+	margin: 0;
+	padding: 8px;
+	box-sizing: border-box;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+a {
+	color: rgb(0,100,200);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:visited {
+	color: rgb(0,80,160);
+}
+
+label {
+	display: inline-block;
+	margin-bottom: 0.5rem;
+}
+
+input, button, select, textarea {
+	font-family: inherit;
+	font-size: inherit;
+	-webkit-padding: 0.4em 0;
+	padding: 0.4em;
+	margin: 0 0 0.5em 0;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	background-color: var(--input-background);
+	color: var(--text);
+	border-radius: 2px;
+}
+
+input:disabled {
+	color: var(--disabled-input);
+}
+
+button {
+	color: var(--text);
+	background-color: var(--input-background);
+	outline: none;
+}
+
+button:disabled {
+	color: #999;
+}
+
+button:not(:disabled):active {
+	background-color: #ddd;
+}
+
+button:focus {
+	border-color: #666;
+}
