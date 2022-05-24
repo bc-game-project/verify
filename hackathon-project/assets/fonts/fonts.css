@@ -1,0 +1,10 @@
+@font-face {
+    font-family: 'Pill';
+    font-style: normal;
+    font-weight: 500;
+    src: url('Pill\ Gothic\ 300mg\ Regular.eot'); /* IE9 Compat Modes */
+    src: local(''), url('Pill\ Gothic\ 300mg\ Regular.eot?#iefix') format('embedded-opentype'),
+        /* IE6-IE8 */ url('Pill\ Gothic\ 300mg\ Regular.woff') format('woff'),
+        /* Modern Browsers */ url('Pill\ Gothic\ 300mg\ Regular.ttf') format('truetype'),
+        /* Safari, Android, iOS */ url('Pill\ Gothic\ 300mg\ Regular.ttf') format('svg'); /* Legacy iOS */
+}
